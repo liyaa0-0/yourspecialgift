@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Surprise for ALIA JAZMINA🦋</title>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+  }
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: opacity 2s;
+  }
+  .final-message {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 50px;
+    font-family: bold sans-serif;
+    opacity: 0;
+    white-space: pre-line; /* support multi-line */
+  }
+  .start-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 15px 30px;
+    font-size: 24px;
+    background: #FF69B4;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #FF69B4;
+  }
+  #videoContainer {
+    display: none;
+    text-align: center;
+    padding-top: 40px;
+  }
+  #memoryVideo {
+    width: 80%;
+    height: 680px; /* adjust as needed */
+    object-fit: cover;
+    border: 4px solid pink;
+    border-radius: 10px;
+    box-shadow: 0 0 20px pink;
+  }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div class="final-message" id="finalMessage">
+May Allah be your strength<br> in every path you take<br>and always bless you.
+</div>
+<button class="start-btn" id="startBtn">Start</button>
+<audio id="bgMusic" loop>
+  <source src="untouchable.mp3" type="audio/mpeg">
+</audio>
+<div id="videoContainer">
+  <video id="memoryVideo" controls muted>
+    <source src="memories.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Settings
+const letters = 'HAPPYBIRTHDAY';
+const fontSize = 25;
+const sageGreen = '#9CAF88';
+let columns = canvas.width / fontSize;
+let drops = Array.from({ length: columns }).fill(1);
+const particles = [];
+const messages = ['1','2','3','Happy Birthday','ALIA JAZMINA','23.07.2005','Happy 20'];
+let messageIndex = 0;
+let forming = false;
+
+// Draw Matrix rain
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(0,0,0,0.05)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#A020F0';
+  ctx.font = fontSize+'px monospace';
+  for(let i=0;i<drops.length;i++){
+    const text=letters[Math.floor(Math.random()*letters.length)];
+    ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+    if(drops[i]*fontSize>canvas.height && Math.random()>0.975){ drops[i]=0; }
+    drops[i]++;
+  }
+}
+
+// Create particles from text
+function createParticles(text) {
+  particles.length = 0;
+  const off = document.createElement('canvas');
+  off.width = canvas.width;
+  off.height = canvas.height;
+  const offCtx = off.getContext('2d');
+  offCtx.clearRect(0,0,off.width,off.height);
+  offCtx.font = isNaN(text) ? '200px sans-serif' : '300px sans-serif';
+  offCtx.textAlign='center';
+  offCtx.textBaseline='middle';
+  offCtx.fillStyle='white';
+  offCtx.fillText(text, off.width/2, off.height/2);
+  const data = offCtx.getImageData(0,0,off.width,off.height).data;
+  for(let y=0;y<off.height;y+=6){
+    for(let x=0;x<off.width;x+=6){
+      if(data[(y*off.width + x)*4+3]>128){
+        particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, tx:x, ty:y, isHeart:false});
+      }
+    }
+  }
+}
+
+// Draw particles
+function drawParticles(){
+  for(const p of particles){
+    ctx.fillStyle = p.isHeart ? 'rgba(255,105,180,0.8)' : sageGreen;
+    if(forming && p.tx !== undefined){
+      p.x += (p.tx - p.x)*0.05;
+      p.y += (p.ty - p.y)*0.05;
+    }else if(p.vx !== undefined){
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= 0.95; p.vy *= 0.95;
+    }else{
+      p.x += (Math.random()-0.5)*2;
+      p.y += (Math.random()-0.5)*2;
+    }
+    ctx.fillRect(p.x,p.y,4,4);
+  }
+}
+
+// Draw heart shape and then show video
+function drawHeart(){
+  const finalMsg = document.getElementById('finalMessage');
+  finalMsg.style.opacity=1;
+  const heartPoints=[];
+  for(let t=0; t<Math.PI*2; t+=0.02){
+    for(let offset=-0.4; offset<=0.4; offset+=0.2){
+      const tt = t+offset;
+      const x = 16*Math.pow(Math.sin(tt),3);
+      const y = 13*Math.cos(tt)-5*Math.cos(2*tt)-2*Math.cos(3*tt)-Math.cos(4*tt);
+      heartPoints.push({tx: canvas.width/2 + x*20, ty: canvas.height/2 - y*20});
+    }
+  }
+  forming=false;
+  particles.forEach(p => { p.isHeart=true; delete p.tx; delete p.ty; p.vx=(Math.random()-0.5)*10; p.vy=(Math.random()-0.5)*10; });
+  for(const pt of heartPoints){
+    particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, tx:pt.tx, ty:pt.ty, isHeart:true});
+  }
+  forming=true;
+
+  setTimeout(()=>{
+    finalMsg.style.display='none';
+    canvas.style.opacity=0;
+    document.getElementById('videoContainer').style.display='block';
+    document.getElementById('memoryVideo').play();
+  }, 3000);
+}
+
+// Animation loop
+function animate(){
+  drawMatrix();
+  if(particles.length>0) drawParticles();
+  requestAnimationFrame(animate);
+}
+
+// Start sequence
+document.getElementById('startBtn').addEventListener('click',()=>{
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('bgMusic').play();
+  showNextMessage();
+});
+
+function showNextMessage(){
+  forming=true;
+  createParticles(messages[messageIndex]);
+  setTimeout(()=>{
+    forming=false;
+    setTimeout(()=>{
+      messageIndex++;
+      if(messageIndex<messages.length){
+        showNextMessage();
+      }else{
+        drawHeart();
+      }
+    },1000);
+  },1500);
+}
+
+animate();
+</script>
+</body>
+</html>
